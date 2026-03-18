@@ -29,7 +29,7 @@ REQUIRED_CHANNELS = {"NytroBC channel": "@nbc_channeI"}
 
 # URL вашего Mini App
 MINI_APP_URL = (
-    "https://81b697c0-46b7-4b43-9205-f1bd8c5278f5-00-c6e75lfj1try.pike.replit.dev"
+    "https://nytrobc-1.onrender.com"
 )
 
 # Инициализация бота и диспетчера
