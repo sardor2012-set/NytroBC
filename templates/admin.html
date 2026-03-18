@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NytroBC — Админ панель</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.6em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .back-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.85em;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+        .back-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,0.5); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 50px rgba(0,0,0,0.15); }
+        .stat-icon { font-size: 2em; margin-bottom: 10px; display: block; }
+        .stat-icon.q { color: #667eea; }
+        .stat-icon.w { color: #4caf50; }
+        .stat-icon.e { color: #ff9800; }
+        .stat-icon.r { color: #b32291; }
+        .stat-icon.t { color: #E91E63; }
+        .stat-icon.y { color: #00BCD4; }
+        .stat-icon.u { color: #9C27B0; }
+        .stat-icon.i { color: #07b08e; }
+        .stat-value { font-size: 2em; font-weight: 800; color: #333; display: block; margin-bottom: 5px; }
+        .stat-label { font-size: 0.85em; color: #666; font-weight: 500; }
+
+        .users-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .users-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: #333;
+        }
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .refresh-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .search-wrap i {
+            position: absolute;
+            left: 12px;
+            color: #666;
+            font-size: 0.85em;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 12px 10px 35px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 0.9em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #667eea; }
+
+        .users-list-container {
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .user-item {
+            background: #fff;
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+        }
+        .user-item:hover { border-color: #667eea; background: #f8faff; }
+
+        .user-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95em;
+        }
+        .user-meta { font-size: 0.8em; color: #718096; }
+
+        .user-actions { display: flex; gap: 8px; }
+        .btn-edit {
+            background: #3f69b5;
+            color: white;
+            border: none;
+            padding: 7px 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.78em;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .btn-edit:hover { background: #2f559a; transform: scale(1.05); }
+        .btn-delete {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 7px 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.78em;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .btn-delete:hover { background: #c53030; transform: scale(1.05); }
+
+        .blocked-icon { color: #e53e3e; margin-left: 5px; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .admin-modal {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            animation: modalIn 0.3s ease-out;
+            position: relative;
+        }
+        @keyframes modalIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-title {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-title i { color: #667eea; }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #f7fafc;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .info-row .label { color: #718096; font-weight: 500; }
+        .info-row .value { color: #2d3748; font-weight: 600; }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.85em;
+            color: #4a5568;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9em;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .form-input:focus { border-color: #667eea; }
+        .form-input:disabled { background: #f0f0f0; color: #888; cursor: not-allowed; }
+
+        .status-display {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            font-size: 0.9em;
+            background: #f7fafc;
+        }
+
+        .divider { height: 1px; background: #e2e8f0; margin: 16px 0; }
+
+        .modal-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .modal-footer-row {
+            display: grid;
+            gap: 8px;
+        }
+        .modal-footer-row.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+        .modal-footer-row.cols2 { grid-template-columns: 1fr 1fr; }
+        .btn-save {
+            background: #c5fcbd;
+            color: #276221;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 700;
+            padding: 11px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-save:hover { background: #4caf50; color: white; }
+        .btn-block {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.74em;
+            font-weight: 700;
+            padding: 11px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-block.unblock { background: #48bb78; }
+        .btn-block:hover { opacity: 0.85; }
+        .btn-cancel {
+            background: #edf2f7;
+            color: #4a5568;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 700;
+            padding: 5px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: absolute;
+            top: 10px;
+            right: 10px; 
+        }
+        .btn-cancel:hover { background: #e53e3e; color: white; }
+        .btn-sub-remove {
+            background: #fed7aa;
+            color: #7c2d12;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 700;
+            padding: 11px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-sub-remove:hover { background: #fb923c; color: white; }
+        .btn-sub-grant {
+            background: #bbf7d0;
+            color: #14532d;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 700;
+            padding: 11px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-sub-grant:hover { background: #22c55e; color: white; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 4px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        .badge-active { background: rgba(76,175,80,0.15); color: #2e7d32; font-size: 0.78em; margin-left: 5px;}
+        .badge-expired { background: rgba(229,62,62,0.15); color: #c53030; }
+        .badge-blocked { background: rgba(229,62,62,0.15); color: #c53030; }
+        .badge-ok { background: rgba(76,175,80,0.15); color: #2e7d32; }
+
+        .empty-msg { text-align: center; color: #a0aec0; padding: 30px; font-size: 0.9em; }
+
+        @media (max-width: 500px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .modal-footer-row.cols3 { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fa-solid fa-shield-halved"></i> Админ панель </h1>
+            <a href="/" class="back-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fa-solid fa-users stat-icon q"></i>
+                <span class="stat-value" id="stat-users">—</span>
+                <span class="stat-label">Всего пользователей</span>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-user-clock stat-icon w"></i>
+                <span class="stat-value" id="stat-dayusers">—</span>
+                <span class="stat-label">Пользователи за сегодня</span>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-crown stat-icon e"></i>
+                <span class="stat-value" id="stat-subs">—</span>
+                <span class="stat-label">Активных подписок</span>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-piggy-bank stat-icon r"></i>
+                <span class="stat-value" id="stat-money">—</span>
+                <span class="stat-label">Всего копилок</span>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-clipboard-list stat-icon t"></i>
+                <span class="stat-value" id="stat-plans">—</span>
+                <span class="stat-label">Всего планов</span>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-bell stat-icon y"></i>
+                <span class="stat-value" id="stat-total-notifications">—</span>
+                <span class="stat-label">Всего уведомлений</span>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-circle-dollar-to-slot stat-icon u"></i>
+                <span class="stat-value" id="stat-moneyrecords">—</span>
+                <span class="stat-label">Всего финансовых записей</span>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-comment stat-icon i"></i>
+                <span class="stat-value" id="stat-notifications">—</span>
+                <span class="stat-label">Включено уведомление</span>
+            </div>
+        </div>
+
+        <div class="users-card">
+            <div class="users-title">
+                <span><i class="fa-solid fa-users-gear" style="color:#667eea;"></i> Пользователи</span>
+                <button class="refresh-btn" onclick="loadAll()"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+            <div class="search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="user-search" class="search-input" placeholder="Поиск по имени или username..." oninput="filterUsers()">
+            </div>
+            <div class="users-list-container">
+                <div id="users-list">
+                    <div class="empty-msg"><i class="fa-solid fa-spinner fa-spin"></i> Загрузка...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div id="user-modal" class="modal-overlay">
+        <div class="admin-modal">
+            <div class="modal-title"><i class="fa-solid fa-user-pen"></i> Редактирование<button class="btn-cancel" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-id-badge"></i> Telegram ID</span>
+                <span class="value" id="m-user-id">—</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-at"></i> Username</span>
+                <span class="value" id="m-username">—</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-user"></i> ФИО</span>
+                <span class="value" id="m-fullname">—</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-crown"></i> Подписка</span>
+                <span class="value" id="m-sub">—</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-coins"></i> Валюта</span>
+                <span class="value" id="m-currency">—</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-receipt"></i> Финансовых записей</span>
+                <span class="value" id="m-finance">—</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-piggy-bank"></i> Копилок</span>
+                <span class="value" id="m-savings">—</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="fa-solid fa-circle-check"></i> Статус</span>
+                <span class="value" id="m-status">—</span>
+            </div>
+
+            <div class="modal-footer">
+                <div class="modal-footer-row cols3">
+                    <button class="btn-save" onclick="saveUserEdit()"><i class="fa-solid fa-floppy-disk"></i> Сохранить</button>
+                    <button class="btn-block" id="btn-block" onclick="toggleBlock()"><i class="fa-solid fa-ban"></i> Заблокировать</button>
+                </div>
+                <div class="modal-footer-row cols2">
+                    <button class="btn-sub-remove" onclick="removeSubscription()"><i class="fa-solid fa-crown"></i> Снять <i class="fa-regular fa-star"></i></button>
+                    <button class="btn-sub-grant" onclick="grantSubscription()"><i class="fa-solid fa-crown"></i> Выдать <i class="fa-solid fa-star"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allUsers = [];
+        let selectedUser = null;
+
+        async function loadAll() {
+            loadStats();
+            loadUsers();
+        }
+
+        async function loadStats() {
+            try {
+                const r = await fetch('/api/admin/stats');
+                const d = await r.json();
+                document.getElementById('stat-users').textContent = d.total_users ?? '—';
+                document.getElementById('stat-dayusers').textContent = d.day_users ?? '—';
+                document.getElementById('stat-subs').textContent = d.active_subs ?? '—';
+                document.getElementById('stat-money').textContent = d.total_savings ?? '—';
+                document.getElementById('stat-plans').textContent = d.total_plans ?? '—';
+                document.getElementById('stat-total-notifications').textContent = d.total_notifications ?? '—';
+                document.getElementById('stat-moneyrecords').textContent = d.total_finance ?? '—';
+                document.getElementById('stat-notifications').textContent = d.enabled_notifications ?? '—';
+            } catch(e) { console.error('Stats error', e); }
+        }
+
+        async function loadUsers() {
+            document.getElementById('users-list').innerHTML = '<div class="empty-msg"><i class="fa-solid fa-spinner fa-spin"></i> Загрузка...</div>';
+            try {
+                const r = await fetch('/api/admin/users');
+                allUsers = await r.json();
+                renderUsers(allUsers);
+            } catch(e) {
+                document.getElementById('users-list').innerHTML = '<div class="empty-msg">Ошибка загрузки</div>';
+            }
+        }
+
+        function filterUsers() {
+            const q = document.getElementById('user-search').value.toLowerCase().trim();
+            if (!q) { renderUsers(allUsers); return; }
+            const filtered = allUsers.filter(u => {
+                const name = (u.full_name || '').toLowerCase();
+                const uname = (u.username || '').toLowerCase();
+                return name.includes(q) || uname.includes(q);
+            });
+            renderUsers(filtered);
+        }
+
+        function renderUsers(users) {
+            const list = document.getElementById('users-list');
+            if (!users || users.length === 0) {
+                list.innerHTML = '<div class="empty-msg">Пользователей не найдено</div>';
+                return;
+            }
+            list.innerHTML = '';
+            users.forEach(u => {
+                const name = u.full_name || (u.username ? '@' + u.username : 'Без имени');
+                const isBlocked = u.is_blocked;
+                const subActive = u.sub_active;
+                const subBadge = subActive
+                    ? '<span class="badge badge-active">Активна</span>'
+                    : '<span class="badge badge-expired">Нет</span>';
+                const blockedIcon = isBlocked ? '<i class="fa-solid fa-ban blocked-icon" title="Заблокирован"></i>' : '';
+
+                const div = document.createElement('div');
+                div.className = 'user-item';
+                div.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-name">${escHtml(name)} ${blockedIcon} <small style="font-weight:400; color:#888;">@${u.username}</small></div>
+                        <div class="user-meta">ID: ${u.user_id}<br>Подписка: ${subBadge}</div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn-edit" onclick='openModal(${JSON.stringify(u).replace(/'/g,"&#39;")})'><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-delete" onclick="deleteUser(${u.user_id})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function escHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function updateSubDisplay(user) {
+            if (user.sub_active) {
+                const subDate = user.subscription_end ? new Date(user.subscription_end).toLocaleDateString('ru-RU') : '—';
+                document.getElementById('m-sub').innerHTML = '<span class="badge badge-active">Активна до ' + subDate + '</span>';
+            } else {
+                document.getElementById('m-sub').innerHTML = '<span class="badge badge-expired">Нет подписки</span>';
+            }
+        }
+
+        function openModal(user) {
+            selectedUser = user;
+            document.getElementById('m-user-id').textContent = user.user_id;
+            document.getElementById('m-username').textContent = user.username ? '@' + user.username : '—';
+            document.getElementById('m-fullname').textContent = user.full_name || '—';
+
+            // Subscription info
+            updateSubDisplay(user);
+
+            // Currency
+            const curNames = { rub: '₽ Рубль', usd: '$ Доллар', eur: '€ Евро', kzt: '₸ Тенге', uzs: 'сум Узбекский сум', uah: '₴ Гривна', gbp: '£ Фунт' };
+            document.getElementById('m-currency').textContent = curNames[user.currency] || user.currency || '—';
+
+            document.getElementById('m-finance').textContent = user.finance_count ?? 0;
+            document.getElementById('m-savings').textContent = user.savings_count ?? 0;
+
+            // Status
+            if (user.is_blocked) {
+                document.getElementById('m-status').innerHTML = '<span class="badge badge-blocked"><i class="fa-solid fa-ban"></i> Заблокирован</span>';
+            } else {
+                document.getElementById('m-status').innerHTML = '<span class="badge badge-ok"><i class="fa-solid fa-check"></i> Активен</span>';
+            }
+
+            // Block button
+            updateBlockBtn(user.is_blocked);
+            document.getElementById('user-modal').classList.add('active');
+        }
+
+        function updateBlockBtn(isBlocked) {
+            const btn = document.getElementById('btn-block');
+            if (isBlocked) {
+                btn.innerHTML = '<i class="fa-solid fa-unlock"></i> Разблокировать';
+                btn.className = 'btn-block unblock';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-ban"></i> Заблокировать';
+                btn.className = 'btn-block';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('user-modal').classList.remove('active');
+            selectedUser = null;
+        }
+
+        async function saveUserEdit() {
+            if (!selectedUser) return;
+            const data = {
+                full_name: document.getElementById('m-fullname').value,
+                currency: selectedUser.currency,
+            };
+            try {
+                const r = await fetch(`/api/admin/user/${selectedUser.user_id}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const res = await r.json();
+                if (res.success) {
+                    closeModal();
+                    loadAll();
+                } else {
+                    alert('Ошибка сохранения: ' + (res.message || 'неизвестная ошибка'));
+                }
+            } catch(e) {
+                alert('Ошибка при сохранении');
+            }
+        }
+
+        async function removeSubscription() {
+            if (!selectedUser) return;
+            if (!confirm('Снять подписку с пользователя ' + (selectedUser.full_name || selectedUser.user_id) + '?')) return;
+            try {
+                const r = await fetch(`/api/admin/user/${selectedUser.user_id}/subscription?action=remove`, { method: 'POST' });
+                const res = await r.json();
+                if (res.success) {
+                    selectedUser.sub_active = false;
+                    selectedUser.subscription_end = null;
+                    updateSubDisplay(selectedUser);
+                    loadUsers();
+                    loadStats();
+                } else {
+                    alert('Ошибка: ' + (res.message || ''));
+                }
+            } catch(e) {
+                alert('Ошибка при снятии подписки');
+            }
+        }
+
+        async function grantSubscription() {
+            if (!selectedUser) return;
+            const daysStr = prompt('На сколько дней выдать подписку?', '30');
+            if (!daysStr) return;
+            const days = parseInt(daysStr);
+            if (isNaN(days) || days <= 0) {
+                alert('Введите корректное количество дней (больше 0).');
+                return;
+            }
+            try {
+                const r = await fetch(`/api/admin/user/${selectedUser.user_id}/subscription?action=grant&days=${days}`, { method: 'POST' });
+                const res = await r.json();
+                if (res.success) {
+                    selectedUser.sub_active = true;
+                    selectedUser.subscription_end = res.subscription_end;
+                    updateSubDisplay(selectedUser);
+                    loadUsers();
+                    loadStats();
+                } else {
+                    alert('Ошибка: ' + (res.message || ''));
+                }
+            } catch(e) {
+                alert('Ошибка при выдаче подписки');
+            }
+        }
+
+        async function toggleBlock() {
+            if (!selectedUser) return;
+            const isBlocked = selectedUser.is_blocked;
+            const action = isBlocked ? 'unblock' : 'block';
+            const confirmMsg = isBlocked
+                ? 'Разблокировать этого пользователя?'
+                : 'Заблокировать этого пользователя? Он не сможет пользоваться ботом и Mini App.';
+            if (!confirm(confirmMsg)) return;
+            try {
+                const r = await fetch(`/api/admin/user/${selectedUser.user_id}/block?action=${action}`, { method: 'POST' });
+                const res = await r.json();
+                if (res.success) {
+                    selectedUser.is_blocked = res.is_blocked;
+                    updateBlockBtn(res.is_blocked);
+                    // Update status badge
+                    if (res.is_blocked) {
+                        document.getElementById('m-status').innerHTML = '<span class="badge badge-blocked"><i class="fa-solid fa-ban"></i> Заблокирован</span>';
+                    } else {
+                        document.getElementById('m-status').innerHTML = '<span class="badge badge-ok"><i class="fa-solid fa-check"></i> Активен</span>';
+                    }
+                    loadUsers();
+                } else {
+                    alert('Ошибка: ' + (res.message || 'неизвестная ошибка'));
+                }
+            } catch(e) {
+                alert('Ошибка при изменении статуса');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Удалить пользователя ID ' + userId + '? Все его данные будут удалены безвозвратно!')) return;
+            try {
+                const r = await fetch(`/api/admin/user/${userId}/delete`, { method: 'POST' });
+                const res = await r.json();
+                if (res.success) {
+                    loadAll();
+                } else {
+                    alert('Ошибка удаления: ' + (res.message || ''));
+                }
+            } catch(e) {
+                alert('Ошибка при удалении');
+            }
+        }
+
+        // Close modal on overlay click
+        document.getElementById('user-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        loadAll();
+    </script>
+</body>
+</html>
