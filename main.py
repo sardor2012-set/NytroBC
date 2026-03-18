@@ -29,7 +29,7 @@ REQUIRED_CHANNELS = {"NytroBC channel": "@nbc_channeI"}
 
 # URL вашего Mini App
 MINI_APP_URL = (
-    "https://nytrobc-1.onrender.com"
+    "https://9617e0e6-f04e-4e15-900a-b69b0a626052-00-2y89sdzkr0mmy.sisko.replit.dev"
 )
 
 # Инициализация бота и диспетчера
@@ -2580,15 +2580,23 @@ def toggle_notifications(user_id):
         def send_message_thread():
             try:
                 from aiogram import Bot
-                from aiogram.types import ParseMode
-                # Create a new bot instance for this thread
-                bot_thread = Bot(token=BOT_TOKEN)
                 import asyncio
-                asyncio.run(bot_thread.send_message(chat_id=user_id, text=message, parse_mode=ParseMode.HTML))
+
+                async def _send():
+                    bot_thread = Bot(token=BOT_TOKEN)
+                    try:
+                        await bot_thread.send_message(
+                            chat_id=user_id, text=message, parse_mode="HTML"
+                        )
+                    finally:
+                        await bot_thread.session.close()
+
+                asyncio.run(_send())
             except Exception as e:
                 print(f"[toggle_notifications] Error sending message: {e}")
 
         import threading
+
         thread = threading.Thread(target=send_message_thread)
         thread.start()
 
